@@ -2,197 +2,188 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. Page Configuration
-st.set_page_config(page_title="Buddy's Burger Enterprise Panel", page_icon="🍔", layout="wide")
+# 1. Page Architectural Configurations
+st.set_page_config(page_title="Buddy's Burger Enterprise Backbone", page_icon="🍔", layout="wide")
 
-# 2. Advanced Premium CSS (Dark/Light Fusion to match Buddy's Red theme)
+# 2. High-Fidelity Custom CSS (Dark Mode Admin Theme)
 st.markdown("""
 <style>
-    .stApp { background-color: #FAFAFB; font-family: 'Segoe UI', sans-serif; }
-    .metric-card {
-        background: white; padding: 22px; border-radius: 14px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: center;
-        border-left: 5px solid #E50914; transition: 0.3s;
+    .stApp { background-color: #0B0C10; font-family: -apple-system, sans-serif; color: #ECF0F1; }
+    .kpi-card {
+        background: #1F2833; padding: 25px; border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center;
+        border-top: 4px solid #E50914; transition: all 0.3s ease;
     }
-    .metric-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(229,9,20,0.1); }
-    .metric-title { font-size: 13px; color: #718096; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    .metric-value { font-size: 28px; color: #1A202C; font-weight: bold; margin-top: 5px; }
-    .sidebar-calc { background: #1A202C; padding: 15px; border-radius: 10px; color: white; }
-    
-    /* Custom Styling for Action Buttons */
-    div.stButton > button {
-        border-radius: 8px;
-    }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(229,9,20,0.15); }
+    .kpi-title { font-size: 12px; color: #C5A059; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+    .kpi-value { font-size: 32px; color: #FFFFFF; font-weight: 800; margin-top: 8px; }
+    .sidebar-calc { background: #151B24; padding: 20px; border-radius: 12px; border: 1px solid #232D3F; margin-top: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR: Multi-Location & Toggle Calculator ---
-st.sidebar.image("https://buddysburger.com/wp-content/uploads/2020/06b/buddys-logo.png", width=150)
-st.sidebar.title("🏬 Enterprise Navigation")
+# 3. Master Global Core Initialization (Database Simulation)
+if 'db_staff' not in st.session_state:
+    st.session_state.db_staff = [
+        {"id": 101, "Staff Name": "Carlos Mendoza", "Role": "Kitchen Lead", "Base Salary ($)": 4100.0, "Deductions ($)": 0.0, "Hub": "Austin Main"},
+        {"id": 102, "Staff Name": "Ashley Taylor", "Role": "Store Manager", "Base Salary ($)": 4900.0, "Deductions ($)": 0.0, "Hub": "Austin Main"},
+        {"id": 103, "Staff Name": "Lamar Jackson", "Role": "Cashier Specialist", "Base Salary ($)": 2600.0, "Deductions ($)": 0.0, "Hub": "San Marcos"},
+        {"id": 104, "Staff Name": "Sarah Jenkins", "Role": "Shift Supervisor", "Base Salary ($)": 3500.0, "Deductions ($)": 0.0, "Hub": "Round Rock"}
+    ]
+    st.session_state.id_counter = 105
 
-selected_loc = st.sidebar.selectbox(
-    "Select Location Hub:",
-    ["Austin (Cameron Rd)", "San Marcos (TX-80)", "Round Rock (Old Settlers)"]
-)
+if 'gross_revenue' not in st.session_state:
+    st.session_state.gross_revenue = 64250.0
 
-st.sidebar.write("⏱️ **Operating Hours:** 11:00 AM - 11:00 PM (Daily)")
+# --- SIDEBAR CONTROL UNIT & SECURITY INFRASTRUCTURE ---
+st.sidebar.markdown("<h2 style='text-align: center; color: #E50914;'>BUDDY'S HQ</h2>", unsafe_allow_html=True)
 st.sidebar.write("---")
 
-# 🧮 Interactive Sidebar Calculator
-show_calc = st.sidebar.checkbox("🧮 Open Quick Calculator", value=False)
-if show_calc:
-    st.sidebar.markdown('<div class="sidebar-calc">', unsafe_allow_html=True)
-    st.sidebar.subheader("Quick Math")
-    num1 = st.sidebar.number_input("Value A", value=0.0)
-    num2 = st.sidebar.number_input("Value B", value=0.0)
-    op = st.sidebar.selectbox("Operation", ["+", "-", "*", "/"])
-    
-    if op == "+": res = num1 + num2
-    elif op == "-": res = num1 - num2
-    elif op == "*": res = num1 * num2
-    elif op == "/": res = num1 / num2 if num2 != 0 else "Error"
-    
-    st.sidebar.info(f"Result = {res}")
-    st.sidebar.markdown('</div>', unsafe_allow_html=True)
+# Gateway Authorization Check
+staff_key = st.sidebar.text_input("🔒 Enterprise Access Token", type="password", help="Input credentials to unlock transactional channels.")
+if staff_key != "buddys2026":
+    st.sidebar.warning("Awaiting secure authorization signature...")
+    st.title("🔒 Restricted Infrastructure Node")
+    st.info("Please supply the required Access Token in the secure sidebar portal to interface with the active datastreams.")
+    st.stop()
 
-# --- MAIN DASHBOARD INTERFACE ---
-st.title("🍔 Buddy's Burger — Advanced Management Hub")
-st.subheader(f"Live Analytics & Back-Office Control Portal — {selected_loc}")
+st.sidebar.success("Authorization Signature Verified.")
+selected_hub = st.sidebar.selectbox("🎯 Interfaced Fulfillment Hub:", ["All Corporate Network", "Austin Main", "San Marcos", "Round Rock"])
+
+# 🧮 Embedded Floating Mathematical Unit
+st.sidebar.write("---")
+with st.sidebar.expander("🧮 Compute Engine / Quick Calculator", expanded=False):
+    st.markdown('<div class="sidebar-calc">', unsafe_allow_html=True)
+    val_a = st.number_input("Operand A", value=0.0, step=1.0)
+    val_b = st.number_input("Operand B", value=0.0, step=1.0)
+    operation = st.selectbox("Execution Pattern", ["Addition (+)", "Subtraction (-)", "Multiplication (*)", "Division (/)"])
+    if operation == "Addition (+)": out = val_a + val_b
+    elif operation == "Subtraction (-)": out = val_a - val_b
+    elif operation == "Multiplication (*)": out = val_a * val_b
+    elif operation == "Division (/)": out = val_a / val_b if val_b != 0 else "Math Error"
+    st.info(f"Computed Output: {out}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Data Processing Engine (Filtering Layer)
+master_df = pd.DataFrame(st.session_state.db_staff)
+if selected_hub != "All Corporate Network":
+    filtered_df = master_df[master_df["Hub"] == selected_hub]
+else:
+    filtered_df = master_df
+
+# Financial Calculations Pipeline
+if not filtered_df.empty:
+    filtered_df["Net Payout ($)"] = filtered_df["Base Salary ($)"] - filtered_df["Deductions ($)"]
+    allocated_payroll = filtered_df["Net Payout ($)"].sum()
+else:
+    allocated_payroll = 0.0
+
+current_revenue = st.session_state.gross_revenue if selected_hub == "All Corporate Network" else st.session_state.gross_revenue * 0.45
+net_margin = current_revenue - allocated_payroll
+
+# --- MAIN EXECUTIVE DASHBOARD VIEW ---
+st.title("🍔 Buddy's Burger — Multi-Hub Corporate Framework")
+st.write(f"**Active Node:** Node-Interfaced // {selected_hub} Database Stream")
 st.write("---")
 
-# Initialize Master Data in Session State (Lists of dicts for easy row-by-row manipulation)
-if 'employees_list' not in st.session_state:
-    st.session_state.employees_list = [
-        {"id": 1, "Staff Name": "Carlos Mendoza", "Role": "Kitchen Lead", "Base Salary ($)": 3800.0, "Deductions ($)": 0.0},
-        {"id": 2, "Staff Name": "Ashley Taylor", "Role": "Store Manager", "Base Salary ($)": 4500.0, "Deductions ($)": 0.0},
-        {"id": 3, "Staff Name": "Lamar Jackson", "Role": "Cashier", "Base Salary ($)": 2400.0, "Deductions ($)": 0.0}
-    ]
-    st.session_state.next_id = 4
-
-if 'sales_revenue' not in st.session_state:
-    st.session_state.sales_revenue = 28450.0
-
-# Dynamic Calculations based on Current State
-df_staff = pd.DataFrame(st.session_state.employees_list)
-if not df_staff.empty:
-    df_staff["Net Payout ($)"] = df_staff["Base Salary ($)"] - df_staff["Deductions ($)"]
-    total_payroll = df_staff["Net Payout ($)"].sum()
-else:
-    total_payroll = 0.0
-
-net_profit = st.session_state.sales_revenue - total_payroll
-
-# Top Level KPI Cards
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown(f'<div class="metric-card"><div class="metric-title">📈 Gross Sales ({selected_loc})</div><div class="metric-value">${st.session_state.sales_revenue:,.2f}</div></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown(f'<div class="metric-card"><div class="metric-title">💸 Adjusted Staff Payroll</div><div class="metric-value">${total_payroll:,.2f}</div></div>', unsafe_allow_html=True)
-with col3:
-    st.markdown(f'<div class="metric-card"><div class="metric-title">💰 Net Operating Profit</div><div class="metric-value" style="color: #2ECC71;">${net_profit:,.2f}</div></div>', unsafe_allow_html=True)
+# Top Level Operational Analytics Cards
+kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
+with kpi_col1:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">📈 Audited Gross Revenue</div><div class="kpi-value">${current_revenue:,.2f}</div></div>', unsafe_allow_html=True)
+with kpi_col2:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">💸 Net Disbursed Payroll</div><div class="kpi-value">${allocated_payroll:,.2f}</div></div>', unsafe_allow_html=True)
+with kpi_col3:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-title">💰 Net Operating Capital</div><div class="kpi-value" style="color: #2ECC71;">${net_margin:,.2f}</div></div>', unsafe_allow_html=True)
 
 st.write("##")
 
-# --- SECTION 1: BEST SELLERS LIVE CHART ---
-st.header("📊 Menu Performance & Best Sellers")
-c1, c2 = st.columns([1, 2])
+# --- DATA VISUALIZATION BLOCK ---
+st.header("📊 Analytical Performance Vectors")
+chart_col1, chart_col2 = st.columns([1, 2])
 
-with c1:
-    st.write("### 🥇 Top 5 Items Sold This Month")
-    best_sellers = pd.DataFrame({
-        "Menu Item": ["Double Classic", "Seasoned Fries", "Double Spicy", "Oreo Shake", "Mango Lemonade"],
-        "Orders Provided": [1420, 1150, 980, 640, 420]
+with chart_col1:
+    st.write("### Product Velocity Chart")
+    analytics_mix = pd.DataFrame({
+        "Menu Variant": ["Double Spicy Burger", "14-Spice Fries", "Artisanal Oreo Shake", "Double Classic"],
+        "Units Smashed": [2450, 3100, 1890, 1540]
     })
-    st.dataframe(best_sellers, use_container_width=True)
+    st.dataframe(analytics_mix, use_container_width=True)
 
-with c2:
-    fig = px.bar(best_sellers, x="Menu Item", y="Orders Provided", 
-                 title="Live Sales Volume (Items)", color="Orders Provided",
-                 color_continuous_scale=["#FFB3B3", "#E50914"])
-    fig.update_layout(showlegend=False, height=300, margin=dict(t=30, b=10, l=10, r=10))
+with chart_col2:
+    fig = px.bar(analytics_mix, x="Menu Variant", y="Units Smashed", color="Units Smashed",
+                 title="Product Velocity Framework (Monthly Volume Trend)",
+                 color_continuous_scale=["#FF8080", "#E50914"])
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#fff", height=320)
     st.plotly_chart(fig, use_container_width=True)
 
 st.write("---")
 
-# --- SECTION 2: STAFF CONTROL, ONBOARDING & ADVANCED TERMINATION SYSTEM ---
-st.header("👥 HR Center & Active Staff Control Panel")
+# --- HUMAN CAPITAL INTERACTION MATRIX ---
+st.header("👥 Advanced Resource Orchestration & Payroll Matrix")
 
-tab_view, tab_add, tab_penalty = st.tabs([
-    "📋 Active Roster & Quick Actions", 
-    "➕ Onboard New Employee", 
-    "⚡ Apply Staff Deduction"
+tab_roster, tab_onboard, tab_deduction = st.tabs([
+    "📋 Active Personnel Matrix", 
+    "➕ Provision New Personnel", 
+    "⚡ Execute Performance Deductions"
 ])
 
-with tab_view:
-    st.write("### Current Staff Roster")
-    if not df_staff.empty:
-        # بنعرض جدول تفاعلي حقيقي سطر بسطر مع زرار الحذف الخاص بكل موظف
-        for index, row in df_staff.iterrows():
-            emp_col1, emp_col2, emp_col3, emp_col4, emp_col5 = st.columns([2, 1.5, 1.5, 1.5, 1.5])
-            with emp_col1:
-                st.text(f"👤 Name: {row['Staff Name']}")
-            with emp_col2:
-                st.text(f"💼 Role: {row['Role']}")
-            with emp_col3:
-                st.text(f"💵 Salary: ${row['Base Salary ($)']}")
-            with emp_col4:
-                st.text(f"📉 Penalty: ${row['Deductions ($)']}")
-            with emp_col5:
-                # حركة الـ OMG هنا: زرار الحذف الفوري ديناميكي
-                if st.button(f"🔥 Fire / Terminate", key=f"fire_{row['id']}"):
-                    # حذف الموظف من الـ Session State
-                    st.session_state.employees_list = [e for e in st.session_state.employees_list if e['id'] != row['id']]
-                    st.warning(f"ACTION SENT: {row['Staff Name']} has been terminated from this branch.")
+with tab_roster:
+    st.write("### Live Node Personnel Database")
+    if not filtered_df.empty:
+        for idx, row in filtered_df.iterrows():
+            r_col1, r_col2, r_col3, r_col4, r_col5 = st.columns([2, 1.5, 1.5, 1.5, 1.5])
+            with r_col1: st.markdown(f"**👤 Name:** {row['Staff Name']}")
+            with r_col2: st.markdown(f"**💼 Rank:** {row['Role']}")
+            with r_col3: st.markdown(f"**💵 Base:** ${row['Base Salary ($)']}")
+            with r_col4: st.markdown(f"**📉 Reductions:** `${row['Deductions ($)']}`")
+            with r_col5:
+                if st.button("🔥 Terminate Employment", key=f"term_{row['id']}", help="De-provision staff from active cluster node."):
+                    st.session_state.db_staff = [emp for emp in st.session_state.db_staff if emp['id'] != row['id']]
+                    st.error(f"SYSTEM PROTOCOL ACTION: {row['Staff Name']} has been scrubbed from system registry.")
                     st.rerun()
-            st.markdown("<hr style='margin: 5px 0; opacity: 0.3;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 6px 0; opacity: 0.1;'>", unsafe_allow_html=True)
     else:
-        st.info("No active staff registered for this branch.")
+        st.info("No personnel currently provisioned to this operational node.")
 
-with tab_add:
-    st.write("### Onboard a New Team Member")
-    with st.form("onboard_form", clear_on_submit=True):
-        new_name = st.text_input("Employee Full Name")
-        new_role = st.selectbox("Job Position", ["Manager", "Kitchen Lead", "Line Cook", "Cashier", "Drive-Thru Operator"])
-        new_salary = st.number_input("Monthly Base Salary ($)", min_value=500.0, max_value=15000.0, step=100.0, value=2500.0)
-        submit_onboard = st.form_submit_button("Complete Onboarding Process")
+with tab_onboard:
+    st.write("### Provision New Resource Record")
+    with st.form("onboard_form_premium", clear_on_submit=True):
+        f_name = st.text_input("Legal Full Name")
+        f_role = st.selectbox("Designated Operational Rank", ["Store Manager", "Kitchen Lead", "Line Operator", "Cashier Specialist"])
+        f_hub = st.selectbox("Target Assignment Hub", ["Austin Main", "San Marcos", "Round Rock"])
+        f_salary = st.number_input("Contractual Base Monthly Salary ($)", min_value=1000.0, max_value=20000.0, step=100.0, value=3000.0)
         
-        if submit_onboard and new_name:
-            # إضافة الموظف الجديد للـ Database لايف مع الـ ID الفريد بتاعه
-            new_emp_dict = {
-                "id": st.session_state.next_id,
-                "Staff Name": new_name,
-                "Role": new_role,
-                "Base Salary ($)": new_salary,
-                "Deductions ($)": 0.0
-            }
-            st.session_state.employees_list.append(new_emp_dict)
-            st.session_state.next_id += 1
-            st.success(f"OMG Success! {new_name} is now officially registered in {selected_loc} payroll database.")
-            st.rerun()
-
-with tab_penalty:
-    st.write("### Issue Financial Deduction")
-    if not df_staff.empty:
-        with st.form("deduction_form", clear_on_submit=True):
-            target_employee = st.selectbox("Select Employee:", df_staff["Staff Name"].tolist())
-            deduct_amount = st.number_input("Deduction Amount ($)", min_value=0.0, max_value=1000.0, step=10.0)
-            reason = st.text_input("Reason for Penalty")
-            
-            submit_penalty = st.form_submit_button("Confirm & Apply Penalty")
-            if submit_penalty and deduct_amount > 0:
-                for emp in st.session_state.employees_list:
-                    if emp["Staff Name"] == target_employee:
-                        emp["Deductions ($)"] += deduct_amount
-                st.success(f"Applied a penalty of ${deduct_amount} to {target_employee}.")
+        if st.form_submit_button("Authorize Allocation"):
+            if f_name:
+                st.session_state.db_staff.append({
+                    "id": st.session_state.id_counter, "Staff Name": f_name, "Role": f_role,
+                    "Base Salary ($)": f_salary, "Deductions ($)": 0.0, "Hub": f_hub
+                })
+                st.session_state.id_counter += 1
+                st.success(f"Resource Record Allocated: {f_name} routed to {f_hub} roster.")
                 st.rerun()
-    else:
-        st.info("No staff available to penalize.")
 
+with tab_deduction:
+    st.write("### Apply Financial Performance Sanction")
+    if not filtered_df.empty:
+        with st.form("penalty_form_premium", clear_on_submit=True):
+            f_target = st.selectbox("Target Employee System Alias:", filtered_df["Staff Name"].tolist())
+            f_deduct = st.number_input("Sanction Metric Value ($)", min_value=0.0, max_value=2500.0, step=25.0)
+            f_reason = st.text_input("Operational Deviation Log Entry / Reason")
+            
+            if st.form_submit_button("Enforce Financial Penalty"):
+                if f_deduct > 0:
+                    for emp in st.session_state.employees_list if 'employees_list' in st.session_state else st.session_state.db_staff:
+                        if emp["Staff Name"] == f_target:
+                            emp["Deductions ($)"] += f_deduct
+                    st.success(f"Sanction Enforced: ${f_deduct} subtracted from {f_target}'s current payout trajectory.")
+                    st.rerun()
+    else:
+        st.info("No personnel objects mapped to this cluster node.")
+
+# --- TRANSACTION TESTING UNIT ---
 st.write("---")
-# --- SECTION 3: SIMULATE LIVE ORDERS ---
-st.header("🚀 Integration Test Center")
-st.write("Simulate a bulk live order placed through the Lovable Frontend:")
-if st.button("Simulate $850.00 Catering Order Receipt"):
-    st.session_state.sales_revenue += 850.0
-    st.success("Incoming API Data Hook: Added $850.00 to Gross Sales!")
+st.header("⚙️ Network API Hub Simulation")
+if st.button("Trigger Inbound Digital Payload Receipt (Simulate Wholesale Catering Order +$1,500.00)"):
+    st.session_state.gross_revenue += 1500.0
+    st.success("Network Hook Execution: Interfaced payload added to pipeline.")
     st.rerun()

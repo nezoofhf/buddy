@@ -4,13 +4,16 @@ import datetime
 
 # 1. إعدادات الصفحة الأساسية
 st.set_page_config(
-    page_title="REST-OS Global SaaS v6.0",
+    page_title="REST-OS Global Enterprise v7.0",
     page_icon="👑",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. الـ HTML & CSS الـ Premium
+# سعر الصرف الثابت (1 دولار = 3.75 ريال سعودي)
+EXCHANGE_RATE = 3.75
+
+# 2. الـ HTML & CSS الـ Premium المتناسق
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
@@ -80,26 +83,23 @@ if 'branches_data' not in st.session_state:
 if 'daily_attendance' not in st.session_state:
     st.session_state.daily_attendance = {}
 
-# 4. السايدبار: اختيار فرع مخصص أو إدارة المجموعة كاملة
+# 4. السايدبار: التحكم الموحد للفروع وتعيين/فصل الموظفين
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: white;'>🏢 لوحة تحكم الفروع</h2>", unsafe_allow_html=True)
     
-    # ميزة اختيار إدارة كل الفروع معاً أو فرع مخصص
     branch_options = ["🌍 إدارة المجموعة كاملة (All Branches)"] + list(st.session_state.branches_data.keys())
     selected_branch = st.selectbox("🏬 اختر نطاق الإدارة:", branch_options)
     
     password_input = st.text_input("🔑 رمز الأمان الموحد:", type="password")
-    
     st.markdown("---")
     
     if password_input == "1234":
         st.success("🔓 صلاحيات الإدارة نشطة")
         
-        # لو اختار فرع مخصص، يظهر له خيار إضافة وفصل الموظفين للفرع ده
         if selected_branch != "🌍 إدارة المجموعة كاملة (All Branches)":
-            st.markdown(f"<h3 style='color: white; text-align: right;'>➕ تعيين بالفرع</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; text-align: right;'>➕ تعيين بالفرع (Hire)</h3>", unsafe_allow_html=True)
             new_name = st.text_input("اسم الموظف الجديد:")
-            new_salary = st.number_input("الراتب الأساسي:", min_value=1000, max_value=50000, value=4000, step=500)
+            new_salary = st.number_input("الراتب الأساسي (SAR):", min_value=1000, max_value=50000, value=4000, step=500)
             hire_date = st.date_input("📆 تاريخ دخول العمل:", datetime.date.today())
             
             if st.button("➕ إتمام التعيين"):
@@ -114,7 +114,7 @@ with st.sidebar:
                     st.rerun()
             
             st.markdown("---")
-            st.markdown("<h3 style='color: white; text-align: right;'>🚨 إنهاء خدمات بالفرع</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: white; text-align: right;'>🚨 إنهاء خدمات بالفرع (Fire)</h3>", unsafe_allow_html=True)
             active_emps = st.session_state.branches_data[selected_branch]['employees']
             if active_emps:
                 emp_to_fire_code = st.selectbox("🔥 اختر موظف لفصله:", list(active_emps.keys()), format_func=lambda x: active_emps[x]["الاسم"])
@@ -124,14 +124,29 @@ with st.sidebar:
                         emp_info = active_emps[emp_to_fire_code]
                         st.session_state.branches_data[selected_branch]['fired'].append({
                             "كود الموظف": emp_to_fire_code, "الاسم": emp_info["الاسم"],
-                            "تاريخ التعيين": emp_info["تاريخ_التعيين"], "سبب إنهاء الخدمات ⚠️": fire_reason
+                            "تاريخ التعيين": emp_info["تاريخ_التعيين"], "سبب إنهاء الخدمات ⚠️": fire_reason,
+                            "الفرع": selected_branch
                         })
                         del active_emps[emp_to_fire_code]
-                        st.toast("⚠️ تم شطب الموظف بنجاح.")
+                        st.toast("⚠️ تم شطب الموظف بنجاح تامة.")
                         st.rerun()
     else:
-        st.error("🔒 يرجى إدخال رمز الأمان (1234) لعرض البيانات الحسابية.")
+        st.error("🔒 يرجى إدخال رمز الأمان (1234) لعرض البيانات.")
         st.stop()
+
+# ----------------- 🌟 ميزة تحويل العملة الذكية (الريال / الدولار) -----------------
+col_hero, col_currency = st.columns([5, 1])
+
+with col_currency:
+    currency_mode = st.radio("💱 عملة العرض:", ["ريال سعودي (SAR)", "دولار أمريكي (USD)"])
+    is_usd = currency_mode == "دولار أمريكي (USD)"
+    currency_symbol = "USD $" if is_usd else "SAR"
+
+# دالة مساعدة لتحويل القيم وعرضها حسب العملة المختارة
+def format_currency(val_in_sar):
+    if is_usd:
+        return f"USD {(val_in_sar / EXCHANGE_RATE):,.2f}"
+    return f"SAR {val_in_sar:,}"
 
 # ----------------- الحسابات والـ Logic الذكي للفروع -----------------
 total_budget = 0
@@ -142,23 +157,18 @@ display_employees = {}
 display_fired = []
 
 if selected_branch == "🌍 إدارة المجموعة كاملة (All Branches)":
-    # تجميع حسابات وموظفي كل الفروع لايف
     for b_name, b_info in st.session_state.branches_data.items():
         total_budget += b_info["budget"]
         for e_code, e_info in b_info["employees"].items():
             total_salaries += e_info["الراتب"]
             total_bonus += e_info["البونص"]
             total_deductions += e_info["الخصومات"]
-            # إضافة اسم الفرع جنب الموظف في العرض الشامل
             info_copy = e_info.copy()
             info_copy["الفرع"] = b_name
             display_employees[e_code] = info_copy
         for f_emp in b_info["fired"]:
-            f_copy = f_emp.copy()
-            f_copy["الفرع"] = b_name
-            display_fired.append(f_copy)
+            display_fired.append(f_emp)
 else:
-    # حسابات فرع واحد مخصص
     b_info = st.session_state.branches_data[selected_branch]
     total_budget = b_info["budget"]
     for e_code, e_info in b_info["employees"].items():
@@ -174,46 +184,47 @@ grand_total_payroll = total_salaries + total_bonus - total_deductions
 remaining_budget = total_budget - grand_total_payroll
 
 # 5. الهيدر الرئيسي الديناميكي
-st.markdown(f"""
-    <div class="hero-container">
-        <div style="background-color: #4338ca; color: #e0e7ff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 15px;">
-            🛡️ النطاق الحالي: {selected_branch}
+with col_hero:
+    st.markdown(f"""
+        <div class="hero-container">
+            <div style="background-color: #4338ca; color: #e0e7ff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 15px;">
+                🛡️ نطاق الإدارة النشط: {selected_branch}
+            </div>
+            <div class="hero-title">REST-OS Ultimate Enterprise v7.0</div>
+            <div class="hero-subtitle">النظام المالي الأقوى: تعديل فوري للبيانات، تحويل عملات ذكي، وإدارة كاملة لأرشيف الموظفين</div>
         </div>
-        <div class="hero-title">REST-OS Enterprise: Multi-Branch Suite</div>
-        <div class="hero-subtitle">النظام الشامل المطور بالكامل لعام 2026 لإدارة وتجميع حسابات فروع المطاعم والمجموعات التجارية</div>
-    </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# 6. كروت الإحصائيات (Metrics) تظهر مجمعة أو منفصلة تلقائياً!
+# 6. كروت الإحصائيات (تتحول للدولار تلقائياً لو تم تفعيله)
 st.markdown(f"""
     <div class="cards-grid">
         <div class="metric-card">
             <div class="card-header-flex"><span class="card-icon">📊</span><span class="card-title">إجمالي الميزانية المراقبة</span></div>
-            <div class="card-value">SAR {total_budget:,}</div>
+            <div class="card-value">{format_currency(total_budget)}</div>
         </div>
         <div class="metric-card">
             <div class="card-header-flex"><span class="card-icon">💵</span><span class="card-title">صافي الـ Payroll الحالي</span></div>
-            <div class="card-value" style="color: #6366f1;">SAR {grand_total_payroll:,}</div>
+            <div class="card-value" style="color: #6366f1;">{format_currency(grand_total_payroll)}</div>
         </div>
         <div class="metric-card">
             <div class="card-header-flex"><span class="card-icon">❌</span><span class="card-title">إجمالي خصومات النطاق</span></div>
-            <div class="card-value" style="color: #f43f5e;">SAR {total_deductions:,}</div>
+            <div class="card-value" style="color: #f43f5e;">{format_currency(total_deductions)}</div>
         </div>
         <div class="metric-card">
             <div class="card-header-flex"><span class="card-icon">💰</span><span class="card-title">الخزنة المتبقية</span></div>
-            <div class="card-value" style="color: {'#10b981' if remaining_budget >= 0 else '#f43f5e'};">SAR {remaining_budget:,}</div>
+            <div class="card-value" style="color: {'#10b981' if remaining_budget >= 0 else '#f43f5e'};">{format_currency(remaining_budget)}</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# 7. السيكشنز والـ Tabs
+# 7. السيكشنز والـ Tabs المطورة
 tab_payroll, tab_attendance, tab_adjustments, tab_archive = st.tabs([
-    "💵 كشف الرواتب العام", "📝 حضور وغياب النطاق", "🛠️ التعديلات المالية", "📜 أرشيف المشيو"
+    "💵 كشف الرواتب الموحد", "📝 حضور وغياب النطاق", "🛠️ التعديلات والتحكم بالموظفين", "📜 أرشيف المشيو"
 ])
 
-# --- الـ Payroll ---
+# --- الـ Payroll (يعرض القيم بالريال أو الدولار حسب الاختيار) ---
 with tab_payroll:
     st.markdown("<h3 style='text-align: right; color: white;'>🏪 كشف الرواتب للموظفين النشطين</h3>", unsafe_allow_html=True)
     payroll_table_data = []
@@ -223,11 +234,11 @@ with tab_payroll:
             "كود الموظف": emp_code,
             "الاسم": emp_info["الاسم"],
             "الفرع 🏬": emp_info["الفرع"],
-            "تاريخ التعيين": emp_info["تاريخ_التعيين"],
-            "الراتب الأساسي": f"SAR {emp_info['الراتب']:,}",
-            "البونص 🎁": f"SAR {emp_info['البونص']:,}",
-            "الخصومات ❌": f"SAR {emp_info['الخصومات']:,}",
-            "صافي الراتب": f"SAR {net:,}"
+            "تاريخ التعيين 📅": emp_info["تاريخ_التعيين"],
+            "الراتب الأساسي": format_currency(emp_info['الراتب']),
+            "البونص 🎁": format_currency(emp_info['البونص']),
+            "الخصومات ❌": format_currency(emp_info['الخصومات']),
+            "صافي الراتب النهائي": format_currency(net)
         })
     if payroll_table_data:
         st.dataframe(pd.DataFrame(payroll_table_data).set_index("كود الموظف"), use_container_width=True)
@@ -236,7 +247,7 @@ with tab_payroll:
 
 # --- الحضور والغياب اليومي ---
 with tab_attendance:
-    st.markdown("<h3 style='text-align: right; color: white;'>📅 وحدة تسجيل الحضور اليومي</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: right; color: white;'>📅 وحدة تسجيل الحضور اليومي السريع</h3>", unsafe_allow_html=True)
     chosen_date = st.date_input("📆 اختر يوم العمل:", datetime.date.today())
     chosen_date_str = chosen_date.strftime("%Y-%m-%d")
     
@@ -249,7 +260,6 @@ with tab_attendance:
                 st.markdown(f"<p style='color: white; margin-top: 5px;'><b>{emp_info['الاسم']}</b> ({emp_info['الفرع']})</p>", unsafe_allow_html=True)
             with col_btn_present:
                 if st.button("حضور ✅", key=f"p_{chosen_date_str}_{emp_code}", use_container_width=True):
-                    # تحديث الفرع الأصلي في الداتابيز
                     orig_branch = emp_info["الفرع"]
                     if st.session_state.daily_attendance.get(f"{chosen_date_str}_{emp_code}") == "غائب ❌":
                         st.session_state.branches_data[orig_branch]['employees'][emp_code]["الخصومات"] = max(0, st.session_state.branches_data[orig_branch]['employees'][emp_code]["الخصومات"] - 100)
@@ -270,11 +280,14 @@ with tab_attendance:
     else:
         st.info("لا توجد عمالة لتسجيل حضورها.")
 
-# --- التعديلات اليدوية (البونص والخصم) ---
+# --- التعديلات المالية وتعديل بيانات الموظفين (الميزة الجديدة بالملي!) ---
 with tab_adjustments:
-    st.markdown("<h3 style='text-align: right; color: white;'>🛠️ التحكم اليدوي في المكافآت والخصومات</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: right; color: white;'>🛠️ التحكم اليدوي وتحديث بيانات العمال</h3>", unsafe_allow_html=True)
+    
     if display_employees:
-        col_b, col_d = st.columns([1, 1])
+        # قسّمنا الشاشة لـ 3 أعمدة (بونص - خصم - تعديل بيانات الراتب والتاريخ)
+        col_b, col_d, col_edit = st.columns([1, 1, 1.2])
+        
         with col_b:
             st.markdown("#### 🎁 صرف بونص يدوي")
             target_b = st.selectbox("اختر العامل:", list(display_employees.keys()), format_func=lambda x: f"{display_employees[x]['الاسم']} ({display_employees[x]['الفرع']})", key="b_sel")
@@ -284,6 +297,7 @@ with tab_adjustments:
                 st.session_state.branches_data[orig_b]['employees'][target_b]["البونص"] = b_val
                 st.toast("🎁 تم صرف البونص بنجاح!")
                 st.rerun()
+                
         with col_d:
             st.markdown("#### ❌ إقرار خصم مخصص")
             target_d = st.selectbox("اختر العامل:", list(display_employees.keys()), format_func=lambda x: f"{display_employees[x]['الاسم']} ({display_employees[x]['الفرع']})", key="d_sel")
@@ -295,14 +309,39 @@ with tab_adjustments:
                 st.session_state.branches_data[orig_b]['employees'][target_d]["سبب_الخصم"] = d_reason
                 st.toast("❌ تم تطبيق الخصم بنجاح!")
                 st.rerun()
+                
+        with col_edit:
+            st.markdown("#### 📝 تعديل بيانات موظف (الراتب والتاريخ)")
+            target_edit = st.selectbox("اختر موظف لتعديل بياناته حياً:", list(display_employees.keys()), format_func=lambda x: f"{display_employees[x]['الاسم']} ({display_employees[x]['الفرع']})", key="edit_sel")
+            
+            # جلب البيانات الحالية للموظف كـ Default values
+            current_emp_data = display_employees[target_edit]
+            
+            # حقول التعديل
+            updated_salary = st.number_input("الراتب الأساسي الجديد (SAR):", min_value=1000, max_value=100000, value=int(current_emp_data["الراتب"]), step=500)
+            
+            current_date_obj = datetime.datetime.strptime(current_emp_data["تاريخ_التعيين"], "%Y-%m-%d").date()
+            updated_date = st.date_input("تاريخ التعيين المعدل:", current_date_obj)
+            
+            if st.button("💾 حفظ البيانات المعدلة فوراً"):
+                orig_branch = current_emp_data["الفرع"]
+                # حفظ التعديلات مباشرة في قاعدة البيانات للفرع الصحيح
+                st.session_state.branches_data[orig_branch]['employees'][target_edit]["الراتب"] = updated_salary
+                st.session_state.branches_data[orig_branch]['employees'][target_edit]["تاريخ_التعيين"] = updated_date.strftime("%Y-%m-%d")
+                st.toast(f"💾 تم تحديث راتب وتاريخ {current_emp_data['الاسم']} بنجاح!")
+                st.rerun()
     else:
-        st.info("لا توجد عمالة لإجراء تعديلات عليها.")
+        st.info("لا توجد عمالة نشطة لإجراء تعديلات عليها.")
 
 # --- الأرشيف ---
 with tab_archive:
-    st.markdown("<h3 style='text-align: right; color: white;'>📜 أرشيف الموظفين السابقين</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: right; color: white;'>📜 أرشيف الموظفين السابقين (المشيو)</h3>", unsafe_allow_html=True)
     if display_fired:
-        st.dataframe(pd.DataFrame(display_fired), use_container_width=True)
+        df_fired_show = pd.DataFrame(display_fired)
+        # تحويل قيم الأرشيف في العرض لو وضع الدولار شغال
+        if is_usd:
+            st.write("💡 ملاحظة: قيم الأرشيف أدناه تعرض بالعملة الأساسية (الريال السعودي).")
+        st.dataframe(df_fired_show.set_index("كود الموظف"), use_container_width=True)
     else:
         st.info("الأرشيف فارغ في هذا النطاق.")
 
@@ -310,6 +349,6 @@ with tab_archive:
 st.markdown("""
     <br><hr>
     <div style='text-align: center; color: #64748b; font-size: 0.9rem;'>
-        REST-OS Global SaaS Suite v6.0 • Multi-Tenant & Multi-Branch Enterprise • Handcrafted by Nezar Mohammed Hany 👑
+        REST-OS Global SaaS Suite v7.0 • Perfect ERP Edition • Handcrafted by Nezar Mohammed Hany 👑
     </div>
 """, unsafe_allow_html=True)

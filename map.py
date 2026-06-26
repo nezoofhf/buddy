@@ -1,134 +1,188 @@
 import streamlit as st
 import pandas as pd
 
-# 1. تفعيل وضع الشاشة الواسعة وإعدادات الصفحة الأساسية
+# إعدادات الصفحة الأساسية
 st.set_page_config(
-    page_title="Enterprise Restaurant OS",
-    page_icon="📊",
+    page_title="REST-OS Enterprise",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# 2. حقن الـ Custom CSS السحري لتظبيط الموبايل (Mobile Optimization) والـ UI المبهر
+# 🎨 الـ HTML و الـ CSS الصايع والـ Responsive للموبايل
 st.markdown("""
     <style>
-    /* تحسين الخطوط والألوان العامة */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    /* استيراد خطوط احترافية ومريحة للعين */
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
     
     * {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
     }
-    
-    /* جعل الكروت مرنة على الموبايل وتنزل تحت بعضها لو المساحة ضيقة */
-    [data-testid="stMetricVisibility"] {
-        background-color: #1e293b;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border: 1px solid #334155;
-        margin-bottom: 10px;
+
+    /* الخلفية العامة للسيستم لتكون مريحة للعين (Dark Premium Mode) */
+    .stApp {
+        background-color: #0b0f19;
     }
-    
-    /* تظبيط حجم النصوص في الموبايل عشان الأيقونات والأسماء متدخلش في بعضها */
-    @media (max-width: 768px) {
-        .main .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-        }
-        h1 {
-            font-size: 1.8rem !important;
-        }
-        h2 {
-            font-size: 1.4rem !important;
-        }
-        [data-testid="stMetricValue"] {
-            font-size: 1.6rem !important;
-        }
-    }
-    
-    /* ستايل كروت المطاعم الذكية */
-    .restaurant-card {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        border-radius: 16px;
-        padding: 25px;
-        border: 1px solid #4338ca;
-        color: white;
-        margin-bottom: 20px;
-    }
-    
-    /* ستايل الـ Badge الأخضر القانوني اللي هيبهر الـ HR */
-    .status-badge {
-        background-color: #065f46;
-        color: #34d399;
-        padding: 5px 12px;
+
+    /* الهيدر الرئيسي الاحترافي */
+    .hero-container {
+        background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
         border-radius: 20px;
+        padding: 35px;
+        border: 1px solid #312e81;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-bottom: 30px;
+        text-align: right;
+        direction: rtl;
+    }
+    
+    .hero-title {
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+        background: linear-gradient(90deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    /* 📱 الحل السحري لمنع تداخل الأيقونات والكروت على الموبايل (Flex Grid System) */
+    .cards-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+        direction: rtl;
+        margin-bottom: 30px;
+    }
+
+    .metric-card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 16px;
+        padding: 24px;
+        flex: 1 1 calc(33.333% - 20px); /* على اللابتوب: 3 كروت جنب بعض */
+        min-width: 280px; /* يمنع الكارت إنه يصغر عن حجم معين */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        border-color: #4f46e5;
+    }
+
+    /* تنسيق الأيقونات والنصوص جوه الكارت عشان تفضل ثابتة ومريحة */
+    .card-header-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .card-icon {
+        font-size: 1.8rem;
+        background: #1e1b4b;
+        padding: 10px;
+        border-radius: 12px;
+        color: #818cf8;
+    }
+
+    .card-title {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .card-value {
+        color: #ffffff;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .card-delta {
         font-size: 0.85rem;
         font-weight: 600;
-        display: inline-block;
-        margin-bottom: 15px;
+        color: #10b981; /* أخضر مريح للأرباح */
+    }
+
+    /* تعديلات خاصة بشاشات الموبايل (Responsive Media Queries) */
+    @media (max-width: 768px) {
+        .metric-card {
+            flex: 1 1 100%; /* على الموبايل: الكروت تنزل تحت بعضها أوتوماتيك بنسبة 100% */
+        }
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        .card-value {
+            font-size: 1.5rem;
+        }
     }
     </style>
 """, unsafe_index=True)
 
-# 3. الهيدر الرئيسي الاحترافي (بصمة الـ Tech Entrepreneur)
+# ----------------- عرض الـ UI الصايع -----------------
+
+# 1. الهيدر
 st.markdown("""
-    <div class="restaurant-card">
-        <span class="status-badge">🔒 Secure Enterprise Cloud (QNB Verified)</span>
-        <h1>REST-OS: Multi-Tenant Dashboard</h1>
-        <p style='color: #94a3b8; font-size: 1.1rem;'>النظام الذكي الشامل لإدارة الفروع، الرواتب، وتحليل أرباح المطاعم</p>
+    <div class="hero-container">
+        <div style="background-color: #065f46; color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 15px;">
+            🔒 متصل بـ Database السحابية ومؤمن بالكامل
+        </div>
+        <div class="hero-title">REST-OS Enterprise</div>
+        <div class="hero-subtitle">النظام السحابي الأحدث لإدارة سلاسل المطاعم ومراقبة الفروع في الوقت الفعلي</div>
     </div>
 """, unsafe_index=True)
 
-# 4. قسم الـ Key Performance Indicators (Metrics) - مرن على اللابتوب والموبايل
-st.markdown("## 📈 الأداء العام لجميع الفروع")
-col1, col2, col3 = st.columns(3)
+# 2. الكروت المرنة (تتحول تلقائياً على الموبايل بدون أي تداخل)
+st.markdown("""
+    <div class="cards-grid">
+        <!-- كارت الإيرادات -->
+        <div class="metric-card">
+            <div class="card-header-flex">
+                <span class="card-icon">💰</span>
+                <span class="card-title">إجمالي المبيعات اليومية</span>
+            </div>
+            <div class="card-value">SAR 45,280</div>
+            <div class="card-delta">▲ +12.5% (مقارنة بأمس)</div>
+        </div>
+        
+        <!-- كارت الأوردرات -->
+        <div class="metric-card">
+            <div class="card-header-flex">
+                <span class="card-icon">📦</span>
+                <span class="card-title">الأوردرات النشطة بالفروع</span>
+            </div>
+            <div class="card-value">342 أوردر</div>
+            <div class="card-delta" style="color: #f59e0b;">🔥 وقت الذروة الحالي</div>
+        </div>
+        
+        <!-- كارت الرواتب والموظفين -->
+        <div class="metric-card">
+            <div class="card-header-flex">
+                <span class="card-icon">👥</span>
+                <span class="card-title">كفاءة تشغيل الـ HR</span>
+            </div>
+            <div class="card-value">98.4%</div>
+            <div class="card-delta" style="color: #38bdf8;">✓ تسجيل الحضور ذكي</div>
+        </div>
+    </div>
+""", unsafe_index=True)
 
-with col1:
-    st.metric(label="💰 إجمالي إيرادات اليوم", value="SAR 45,280", delta="+12.5% مقارنة بأمس")
-with col2:
-    st.metric(label="📦 الأوردرات النشطة الحالية", value="342 أوردر", delta="🔥 وقت ذروة")
-with col3:
-    st.metric(label="👥 كفاءة الموظفين والرواتب", value="98.4%", delta="مؤمن بالكامل")
+st.markdown("<h2 style='text-align: right; color: white; font-family: Cairo;'>📊 مراقبة الفروع لايف</h2>", unsafe_index=True)
 
-st.markdown("---")
-
-# 5. إدارة الفروع والـ Databases (الحتة اللي صدمت بابا!)
-st.markdown("## 🏪 مراقبة الفروع والـ Live Databases")
-
-# محاكاة لبيانات مخزنة في الـ Database (PostgreSQL/MongoDB Ready)
+# محاكاة الداتابيز التفاعلية (Streamlit Native Node)
 branch_data = {
     "اسم الفرع": ["فرع الرياض (الرئيسي)", "فرع جدة", "فرع مكة"],
     "عدد الموظفين": [24, 18, 12],
     "المبيعات الحالية": ["SAR 21,500", "SAR 14,880", "SAR 8,900"],
-    "حالة المطبخ": ["🟢 مستقر", "🟢 مستقر", "🟡 ضغط عالي"]
+    "حالة العمل": ["🟢 مستقر", "🟢 مستقر", "🟡 ضغط عالي"]
 }
 df = pd.DataFrame(branch_data)
-
-# عرض الجدول بشكل تفاعلي ومريح للعين على الموبايل
 st.dataframe(df, use_container_width=True)
-
-st.markdown("---")
-
-# 6. قسم الأتمتة والذكاء الاصطناعي (مبهر للـ HR وموفر للوقت)
-st.markdown("## 🤖 ميزات الأتمتة المدمجة (HR & Operations Automation)")
-
-tab1, tab2 = st.tabs(["💬 AI Food Chatbot", "📱 Automated Reports"])
-
-with tab1:
-    st.markdown("### الرد الذكي على العملاء واقتراح المنيو")
-    st.info("💡 هذا القسم مربوط بـ OpenAI API لتحليل تفضيلات الزبائن وزيادة المبيعات أوتوماتيكياً.")
-    st.text_input("جرب كعميل: اكتب طلبك هنا (مثال: عايز وجبة عائلية سريعة)")
-    
-with tab2:
-    st.markdown("### التقارير الفورية للإدارة العليا")
-    st.success("🔗 النظام مربوط بـ Twilio API لإرسال تقارير الأرباح والرواتب تلقائياً لـ الواتساب الخاص بالـ HR والمدير التنفيذي فور إغلاق الـ Shift.")
-    if st.button("🚀 إرسال تقرير تجريبي للـ HR الآن"):
-        st.write("🔄 جاري تشغيل الـ Pipeline... تم إرسال التقرير بنجاح عبر السيرفر!")
-
-# 7. الفوتر الاحترافي اللي بيقفل ليفل الوحش
-st.markdown("""
-    <br><hr>
-    <div style='text-align: center; color: #64748b; font-size: 0.9rem;'>
-        REST-OS Enterprise Edition v2.0 • Designed by Nezar Mohammed Hany • Powered by Python & QNB Secure Gateway
-    </div>
-""", unsafe_index=True)

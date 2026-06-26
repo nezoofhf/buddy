@@ -276,6 +276,6 @@ with tab_analytics:
 st.markdown("""
     <br><hr>
     <div style='text-align: center; color: #64748b; font-size: 0.9rem;'>
-        REST-OS SaaS Engine v4.0 • Developed by Nezar Mohammed Hany • software eng
+        REST-OS SaaS Engine v4.0 • Developed by Nezar Mohammed Hany • Powered by Ahmed Amer High Waves 🎶🎛️
     </div>
 """, unsafe_allow_html=True)

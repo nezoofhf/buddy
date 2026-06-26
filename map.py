@@ -1,244 +1,200 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 
 # 1. إعدادات الصفحة الأساسية
 st.set_page_config(
-    page_title="REST-OS Enterprise HR Edition",
-    page_icon="⚡",
+    page_title="REST-OS Multi-Tenant SaaS",
+    page_icon="👑",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. الـ HTML & CSS المطور والمقاوم للموبايل
+# 2. الـ HTML & CSS الـ Premium المريح للعين والمتناسق مع الموبايل
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
     
-    * {
-        font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
-    }
+    * { font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif; }
+    .stApp { background-color: #0b0f19; }
 
-    .stApp {
-        background-color: #0b0f19;
-    }
-
-    /* الهيدر الرئيسي الاحترافي */
+    /* الهيدر الرئيسي */
     .hero-container {
         background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
         border-radius: 20px;
-        padding: 35px;
+        padding: 30px;
         border: 1px solid #312e81;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        margin-bottom: 30px;
+        margin-bottom: 25px;
         text-align: right;
         direction: rtl;
     }
-    
     .hero-title {
-        color: #ffffff;
-        font-size: 2.5rem;
-        font-weight: 900;
-        margin-bottom: 10px;
+        color: #ffffff; font-size: 2.3rem; font-weight: 900; margin-bottom: 10px;
         background: linear-gradient(90deg, #6366f1, #a855f7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
+    .hero-subtitle { color: #94a3b8; font-size: 1rem; }
 
-    .hero-subtitle {
-        color: #94a3b8;
-        font-size: 1.1rem;
-    }
-
-    /* Grid نظام الكروت المرن */
+    /* نظام الكروت المرن للموبايل */
     .cards-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: space-between;
-        direction: rtl;
-        margin-bottom: 30px;
+        display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between;
+        direction: rtl; margin-bottom: 25px;
     }
-
     .metric-card {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 16px;
-        padding: 24px;
-        flex: 1 1 calc(33.333% - 20px);
-        min-width: 280px;
+        background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 20px;
+        flex: 1 1 calc(25% - 15px); min-width: 250px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease, border-color 0.3s ease;
     }
-
-    .metric-card:hover {
-        transform: translateY(-5px);
-        border-color: #4f46e5;
-    }
-
-    .card-header-flex {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 15px;
-    }
-
-    .card-icon {
-        font-size: 1.8rem;
-        background: #1e1b4b;
-        padding: 10px;
-        border-radius: 12px;
-        color: #818cf8;
-    }
-
-    .card-title {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-    .card-value {
-        color: #ffffff;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-
-    .card-delta {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #10b981;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #0f172a;
-        border-left: 1px solid #1f2937;
-    }
-
-    @media (max-width: 768px) {
-        .metric-card {
-            flex: 1 1 100%;
-        }
-        .hero-title {
-            font-size: 1.8rem;
-        }
-    }
+    .card-header-flex { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-icon { font-size: 1.5rem; background: #1e1b4b; padding: 8px; border-radius: 12px; color: #818cf8; }
+    .card-title { color: #94a3b8; font-size: 0.9rem; font-weight: 600; }
+    .card-value { color: #ffffff; font-size: 1.6rem; font-weight: 700; }
+    
+    [data-testid="stSidebar"] { background-color: #0f172a; border-left: 1px solid #1f2937; }
+    @media (max-width: 768px) { .metric-card { flex: 1 1 100%; } .hero-title { font-size: 1.6rem; } }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. المنيو الجانبي (Sidebar)
+# 3. إدارة حالة الموظفين (Session State) عشان الإضافة والفصل والغياب يشتغلوا لايف وميتمسحوش
+if 'employees' not in st.session_state:
+    st.session_state.employees = [
+        {"كود": "EMP-01", "الاسم": "الشيف الرئيسي (أحمد)", "الراتب": 12000, "البونص": 1500},
+        {"كود": "EMP-02", "الاسم": "مدير الصالة (خالد)", "الراتب": 8500, "البونص": 800},
+        {"كود": "EMP-03", "الاسم": "كابتن الصالة (سلطان)", "الراتب": 4500, "البونص": 400}
+    ]
+
+# 4. السايدبار: نظام الأمان، الحضور والغياب، وإدارة الموظفين (لوحة عمك الملكية)
 with st.sidebar:
-    st.markdown("<h2 style='text-align: center; color: white;'>📋 بوابة الأمن والمطور</h2>", unsafe_allow_html=True)
-    st.info("👤 **المطور:** نزار محمد هاني")
-    st.success("💳 **الربط المالي:** QNB Verified Active")
+    st.markdown("<h2 style='text-align: center; color: white;'>🔒 بوابة الأمان و الـ SaaS</h2>", unsafe_allow_html=True)
+    
+    # ميزة بيع السيستم لأكثر من مكان (Multi-Tenancy)
+    selected_tenant = st.selectbox("🏬 اختر المؤسسة / المطعم:", ["Buddy's Burger (فرع السعودية)", "مطعم قصر النيل", "سلسلة الوجبات السريعة X"])
+    password_input = st.text_input("🔑 أدخل رمز الأمان الفيدرالي:", type="password")
+    
     st.markdown("---")
     
-    # 🌟 الـ Feature الجديد: محاكاة نسيان الباسورد الذكي لإبهار الـ HR
-    st.markdown("🔑 **نسيت كلمة المرور؟ (بوابة الاستعادة)**")
-    email_input = st.text_input("أدخل البريد الإلكتروني للموظف:")
-    if st.button("🔄 إرسال رابط إعادة التعيين المشفر"):
-        if email_input:
-            st.code("🔒 Auth-Token: SHA256-98234xX81", language="bash")
-            st.success("🎯 تم التحقق من الهوية! أرسلنا كود إعادة التعيين أوتوماتيكياً عبر السيرفر.")
-        else:
-            st.warning("رجاءً اكتب الإيميل أولاً")
+    # جدار الحماية (السيستم مش هيشتغل غير لو الباسورد صح)
+    if password_input == "1234":
+        st.success(f"🔓 تم تسجيل الدخول لـ {selected_tenant}")
+        
+        # مدخل الميزانية
+        restaurant_budget = st.number_input("💰 ميزانية رواتب الفرع الإجمالية:", min_value=10000, max_value=500000, value=50000, step=5000)
+        
+        st.markdown("---")
+        st.markdown("<h3 style='color: white;'>📝 جدول الحضور والغياب الفوري</h3>", unsafe_allow_html=True)
+        st.write("علّم على الموظف الغائب لخصم 100 ريال فوراً:")
+        
+        # نظام رصد الغياب الديناميكي
+        attendance_status = {}
+        for emp in st.session_state.employees:
+            attendance_status[emp["كود"]] = st.checkbox(f"❌ غياب: {emp['الاسم']}", key=f"abs_{emp['كود']}")
             
-    st.markdown("---")
-    currency = st.radio("💵 عملة العرض الأساسية:", ["الريال السعودي (SAR)", "الدولار الأمريكي (USD)"])
+        st.markdown("---")
+        st.markdown("<h3 style='color: white;'>➕ الإجراءات الإدارية (Hire / Fire)</h3>", unsafe_allow_html=True)
+        
+        # ميزة إضافة موظف جديد (Hire)
+        new_name = st.text_input("اسم الموظف الجديد:")
+        new_salary = st.number_input("الراتب الأساسي للموظف الجديد:", min_value=1000, max_value=50000, value=4000, step=500)
+        if st.button("➕ تعيين موظف جديد (Hire)"):
+            if new_name:
+                new_code = f"EMP-0{len(st.session_state.employees) + 1}"
+                st.session_state.employees.append({"كود": new_code, "الاسم": new_name, "الراتب": new_salary, "البونص": 0})
+                st.toast(f"🎉 تم إضافة {new_name} لطاقم العمل لايف!")
+                st.rerun()
+                
+        st.markdown("---")
+        # ميزة فصل موظف (Fire)
+        emp_to_fire = st.selectbox("🔥 اختر موظف لإنهاء خدماته (Fire):", [e["الاسم"] for e in st.session_state.employees])
+        if st.button("🚨 إنهاء الخدمات فوراً"):
+            st.session_state.employees = [e for e in st.session_state.employees if e["الاسم"] != emp_to_fire]
+            st.toast(f"⚠️ تم إنهاء خدمات {emp_to_fire} وتحديث الداتابيز.")
+            st.rerun()
+            
+    else:
+        st.error("🔒 السيستم مغلق. من فضلك أدخل الباسورد الصحيح (اكتب 1234 للتجربة)")
+        st.stop() # يوقف تشغيل باقي الصفحة لو الباسورد غلط
 
-currency_symbol = "SAR" if currency == "الريال السعودي (SAR)" else "USD"
-payroll_value = "124,500" if currency_symbol == "SAR" else "33,200"
+# ----------------- الكود الرئيسي (يعمل فقط إذا تم تخطي جدار الحماية بنجاح) -----------------
 
-# 4. الهيدر الرئيسي
+# 5. حساب الـ Payroll والميزانية والخصومات ديناميكياً
+processed_employees = []
+total_salaries = 0
+total_bonus = 0
+total_deductions = 0
+
+for emp in st.session_state.employees:
+    is_absent = attendance_status.get(emp["كود"], False)
+    deduction = 100 if is_absent else 0
+    net_salary = emp["الراتب"] + emp["B_bonus" if "B_bonus" in emp else "البونص"] - deduction
+    
+    processed_employees.append({
+        "كود الموظف": emp["كود"],
+        "الاسم": emp["الاسم"],
+        "الراتب الأساسي": f"SAR {emp['الراتب']:,}",
+        "البونص 🎁": f"SAR {emp['البونص']:,}",
+        "الخصومات (غياب) ❌": f"SAR {deduction}",
+        "صافي الراتب النهائي": net_salary
+    })
+    
+    total_salaries += emp["الراتب"]
+    total_bonus += emp["البونص"]
+    total_deductions += deduction
+
+grand_total_payroll = total_salaries + total_bonus - total_deductions
+remaining_budget = restaurant_budget - grand_total_payroll
+
+# 6. الهيدر المطور
 st.markdown(f"""
     <div class="hero-container">
-        <div style="background-color: #1e1b4b; color: #818cf8; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 15px;">
-            💎 لوحة إدارة المستحقات والرواتب المتقدمة v2.8
+        <div style="background-color: #065f46; color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 15px;">
+            💎 مرخص ومؤمن لـ: {selected_tenant} • QNB Secure Sandbox
         </div>
-        <div class="hero-title">REST-OS: Enterprise Payroll</div>
-        <div class="hero-subtitle">النظام المؤتمت بالكامل لحساب رواتب طاقم العمل، المكافآت (Bonus)، والجزاءات الفورية</div>
+        <div class="hero-title">REST-OS Enterprise: Multi-Tenant SaaS v3.0</div>
+        <div class="hero-subtitle">النظام السحابي الأقوى لحساب الـ Payroll، مراقبة الميزانيات، وإدارة عمليات التعيين والفصل الفوري للعمال والموظفين</div>
     </div>
 """, unsafe_allow_html=True)
 
-# 5. عرض كروت الإحصائيات (Metrics) المرنة للـ HR
-st.markdown("""
+# 7. كروت الإحصائيات الذكية والمترابطة (الـ Metrics)
+st.markdown(f"""
     <div class="cards-grid">
         <div class="metric-card">
-            <div class="card-header-flex">
-                <span class="card-icon">💵</span>
-                <span class="card-title">إجمالي مسحوبات الرواتب هذا الشهر</span>
-            </div>
-            <div class="card-value">{} {}</div>
-            <div class="card-delta" style="color: #38bdf8;">✓ مسواة بنجاح البنك</div>
+            <div class="card-header-flex"><span class="card-icon">📊</span><span class="card-title">إجمالي ميزانية الفرع</span></div>
+            <div class="card-value">SAR {restaurant_budget:,}</div>
         </div>
         <div class="metric-card">
-            <div class="card-header-flex">
-                <span class="card-icon">🎁</span>
-                <span class="card-title">إجمالي البونص الموزع كحوافز</span>
-            </div>
-            <div class="card-value">{} 18,400</div>
-            <div class="card-delta">▲ +8.2% نمو الأداء</div>
+            <div class="card-header-flex"><span class="card-icon">💵</span><span class="card-title">صافي الـ Payroll المطلوب صرفه</span></div>
+            <div class="card-value" style="color: #6366f1;">SAR {grand_total_payroll:,}</div>
         </div>
         <div class="metric-card">
-            <div class="card-header-flex">
-                <span class="card-icon">⚠️</span>
-                <span class="card-title">إجمالي الخصومات والجزاءات</span>
-            </div>
-            <div class="card-value">{} 2,150</div>
-            <div class="card-delta" style="color: #f43f5e;">▼ انخفاض المخالفات عن الشهر الماضي</div>
+            <div class="card-header-flex"><span class="card-icon">❌</span><span class="card-title">إجمالي خصومات الغياب اليوم</span></div>
+            <div class="card-value" style="color: #f43f5e;">SAR {total_deductions:,}</div>
+        </div>
+        <div class="metric-card">
+            <div class="card-header-flex"><span class="card-icon">💰</span><span class="card-title">الميزانية المتبقية بالخزنة</span></div>
+            <div class="card-value" style="color: {'#10b981' if remaining_budget >= 0 else '#f43f5e'};">SAR {remaining_budget:,}</div>
         </div>
     </div>
-""".format(currency_symbol, payroll_value, currency_symbol, currency_symbol), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
+
+# تحذير ذكي للميزانية لو المرتبات عدت الميزانية المحددة
+if remaining_budget < 0:
+    st.error(f"⚠️ تحذير مالي حرج: إجمالي الرواتب والـ Payroll يتجاوز الميزانية المحددة للمطعم بمقدار {abs(remaining_budget):,} ريال!")
 
 st.markdown("---")
 
-# 6. قسم التحكم التفاعلي بالبونص والجزاءات (لوحة المدير أو عمك الـ HR)
-st.markdown("<h2 style='text-align: right; color: white; font-family: Cairo;'>⚙️ التحكم في المكافآت والجزاءات لايف</h2>", unsafe_allow_html=True)
+# 8. عرض جدول الرواتب والـ Payroll الذكي النهائي
+st.markdown("<h3 style='text-align: right; color: white; font-family: Cairo;'>🏪 جدول مسحوق الرواتب والـ Payroll المباشر</h3>", unsafe_allow_html=True)
 
-col_actions, col_chart = st.columns([1, 1])
+df_payroll = pd.DataFrame(processed_employees)
+# تنسيق شكل عرض العمود المالي النهائي ليظهر كـ عملة منسقة
+df_payroll["صافي الراتب النهائي"] = df_payroll["صافي الراتب النهائي"].apply(lambda x: f"SAR {x:,}")
 
-with col_actions:
-    st.write("اختر الموظف ونوع الحركة المالية لتحديث الداتابيز فوراً:")
-    
-    # محاكاة لإضافة بونص أو جزاء بشكل حيوي
-    employee = st.selectbox("👤 اختر الموظف / الشيف:", ["الشيف الرئيسي (فرع الرياض)", "مدير صالة فرع جدة", "كابتن صالة فرع مكة"])
-    action_type = st.radio("🛠️ نوع الإجراء المالي:", ["🎁 إضافة مكافأة (Bonus)", "⚠️ تطبيق جزاء / خصم (Deduction)"])
-    amount = st.number_input(f"المبلغ بـ ({currency_symbol}):", min_value=50, max_value=5000, value=500, step=50)
-    
-    if st.button("🚀 ترحيل الحركة المالية إلى قاعدة البيانات"):
-        st.balloons() if "مكافأة" in action_type else st.warning("💥 تم تسجيل الخصم")
-        st.success(f"✅ تم بنجاح! تم تطبيق {action_type} بمبلغ {amount} {currency_symbol} لـ {employee} وتحديث ملف التأمينات الاجتماعي أوتوماتيكياً.")
+st.dataframe(df_payroll.set_index("كود الموظف"), use_container_width=True)
 
-with col_chart:
-    st.markdown("<h3 style='text-align: right; color: white;'>📊 النسبة المقارنة للمصروفات</h3>", unsafe_allow_html=True)
-    # رسمة بيانية توضح توزيع المرتبات مقارنة بالبونص والجزاءات
-    payroll_data = pd.DataFrame({
-        'التصنيف المالي': ['الرواتب الأساسية', 'البونص والحوافز', 'الجزاءات المستقطعة'],
-        'القيمة التقديرية': [85, 12, 3]
-    })
-    st.bar_chart(payroll_data.set_index('التصنيف المالي'), use_container_width=True)
-
-st.markdown("---")
-
-# 7. الـ Database الشاملة للموظفين والرواتب والجزاءات (قفل ليفل الوحش!)
-st.markdown("<h3 style='text-align: right; color: white;'>🏪 جدول الرواتب ومستحقات طاقم العمل بالكامل</h3>", unsafe_allow_html=True)
-
-raw_salary_data = {
-    "الموظف الكود المالي": ["#EMP-901 (الشيف الرئيسي)", "#EMP-402 (مدير الصالة)", "#EMP-109 (طاهي معجنات)", "#EMP-882 (كابتن الصالة)"],
-    "الراتب الأساسي": [f"{currency_symbol} 12,000", f"{currency_symbol} 8,500", f"{currency_symbol} 6,000", f"{currency_symbol} 4,500"],
-    "البونص المستحق 🎁": [f"{currency_symbol} 1,500", f"{currency_symbol} 800", f"{currency_symbol} 1,200", f"{currency_symbol} 400"],
-    "الجزاءات المستقطعة ⚠️": [f"{currency_symbol} 0", f"{currency_symbol} 200", f"{currency_symbol} 0", f"{currency_symbol} 150"],
-    "صافي المقبوض النهائي": [f"{currency_symbol} 13,500", f"{currency_symbol} 9,100", f"{currency_symbol} 7,200", f"{currency_symbol} 4,750"],
-    "الحالة القانونية": ["🟢 تم التحويل للبنك", "🟢 تم التحويل للبنك", "🟢 تم التحويل للبنك", "🟡 معلق للمراجعة"]
-}
-
-df_payroll = pd.DataFrame(raw_salary_data)
-st.dataframe(df_payroll, use_container_width=True)
-
-# 8. الفوتر الاحترافي
+# 9. الفوتر الاحترافي للـ SaaS
 st.markdown("""
     <br><hr>
     <div style='text-align: center; color: #64748b; font-size: 0.9rem;'>
-        REST-OS Payroll Engine v2.8 • Designed by Nezar Mohammed Hany • Powered by Python & QNB Secure Gateway
+        REST-OS SaaS Engine v3.0 • Multi-Tenant Architecture • Powered by Nezar Mohammed Hany & QNB
     </div>
 """, unsafe_allow_html=True)
